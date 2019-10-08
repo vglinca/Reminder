@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#05A997</color>
-    <color name="colorPrimaryDark">#00574B</color>
+    <color name="colorPrimary">#74A3B0</color>
+    <color name="colorPrimaryDark">#2E6C9D</color>
     <color name="colorAccent">#D81B60</color>
+    <color name="colorSaveFab">#65B45E</color>
+    <color name="colorRemoveFab">#B63A5A</color>
+    <color name="colorItemTask">#AABCD8</color>
 </resources>

@@ -33,8 +33,8 @@ public class TaskRecycleAdapter extends RecyclerView.Adapter<TaskRecycleAdapter.
     }
 
     public void changeCursor(Cursor cursor){
-        if (cursor != null)
-            cursor.close();
+        if (cursor != null && cursor != mCursor)
+            mCursor.close();
         mCursor = cursor;
         populateColumnPositions();
         notifyDataSetChanged();

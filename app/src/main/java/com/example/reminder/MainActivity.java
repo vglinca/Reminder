@@ -89,8 +89,9 @@ public class MainActivity extends AppCompatActivity {
                 TaskEntry.COLUMN_DESCRIPTION,
                 TaskEntry._ID
         };
+        final String orderColumns = TaskEntry.COLUMN_DATE;
         mTaskCursor = db.query(TaskEntry.TABLE_NAME, taskColumns,
-                null, null, null, null, null);
+                null, null, null, null, orderColumns);
     }
 
     @Override

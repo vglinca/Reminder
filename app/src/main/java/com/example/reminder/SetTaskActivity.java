@@ -1,11 +1,16 @@
 package com.example.reminder;
 
+import android.app.AlarmManager;
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.app.PendingIntent;
 import android.app.TimePickerDialog;
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
@@ -16,13 +21,18 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.DialogFragment;
 
+import android.os.SystemClock;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 public class SetTaskActivity extends AppCompatActivity implements TimePickerDialog.OnTimeSetListener {
     public static final String TASK_ID = "com.example.reminder.TASK_ID";
@@ -35,6 +45,10 @@ public class SetTaskActivity extends AppCompatActivity implements TimePickerDial
     private int mYear;
     private int mMonth;
     private int mDay;
+    private int mHour;
+    private int mMinute;
+    DatePicker mDatePicker;
+    android.widget.TimePicker mTimePicker;
     private Calendar mCalendar;
     private ReminderDbOpenHelper mDbOpenHelper;
     private int mTaskId;
@@ -49,6 +63,11 @@ public class SetTaskActivity extends AppCompatActivity implements TimePickerDial
     private int mCurrentDay;
     private int mCurrentMonth;
     private int mCurrentYear;
+    private int mCanelAlarm = 1;
+    private Date mFormattedDate;
+    private SimpleDateFormat mSimpleDateFormatter;
+    private Date mFormattedTime;
+    private DateFormat mTimeFormat;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -58,6 +77,7 @@ public class SetTaskActivity extends AppCompatActivity implements TimePickerDial
         mSelectTime = (Button) findViewById(R.id.set_task_time);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
 
         mDbOpenHelper = new ReminderDbOpenHelper(this);
         FloatingActionButton SaveTaskfab = findViewById(R.id.save_task_fab);
@@ -70,7 +90,7 @@ public class SetTaskActivity extends AppCompatActivity implements TimePickerDial
                 mYear = mCalendar.get(Calendar.YEAR);
                 mMonth = mCalendar.get(Calendar.MONTH);
                 mDay = mCalendar.get(Calendar.DAY_OF_MONTH);
-                mDatePickerDialog = new DatePickerDialog(SetTaskActivity.this,
+                mDatePickerDialog = new DatePickerDialog(SetTaskActivity.this, R.style.DialogTheme,
                         new DatePickerDialog.OnDateSetListener() {
                             @Override
                             public void onDateSet(DatePicker datePicker, int year, int month, int day) {
@@ -81,8 +101,15 @@ public class SetTaskActivity extends AppCompatActivity implements TimePickerDial
                                         (month < mCurrentMonth && year <= mCurrentYear)){
                                     Toast.makeText(SetTaskActivity.this, "Invalid date, try again", Toast.LENGTH_LONG).show();
                                 }else{
+                                    mDatePicker = datePicker;
                                     month++;
                                     mDate = day + "/" + month + "/" + year;
+                                    mSimpleDateFormatter = new SimpleDateFormat("dd/MM/yyyy");
+                                    try {
+                                        mFormattedDate = mSimpleDateFormatter.parse(mDate);
+                                    } catch (ParseException e) {
+                                        e.printStackTrace();
+                                    }
                                     mSelectDate.setText(mDate);
                                 }
                             }
@@ -103,7 +130,6 @@ public class SetTaskActivity extends AppCompatActivity implements TimePickerDial
 
         mTaskTitle = findViewById(R.id.task_title);
         mTaskDescription = findViewById(R.id.task_description);
-       // mIsNewTask = true;
         if(!mIsNewTask)
             loadTaskFromDb();
 
@@ -114,6 +140,7 @@ public class SetTaskActivity extends AppCompatActivity implements TimePickerDial
                     Toast.makeText(SetTaskActivity.this, "Complete fields", Toast.LENGTH_LONG).show();
                 }else{
                     saveTask();
+                    setupAlarmManager();
                     startActivity(new Intent(SetTaskActivity.this, MainActivity.class));
                 }
             }
@@ -121,10 +148,44 @@ public class SetTaskActivity extends AppCompatActivity implements TimePickerDial
         RemoveTaskfab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                cancelAlarm();
                 deleteTask();
                 startActivity(new Intent(SetTaskActivity.this, MainActivity.class));
             }
         });
+    }
+
+    private void cancelAlarm() {
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        intent.setData(Uri.parse("alarm://" + mTaskId));
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, mTaskId,
+                intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        alarmManager.cancel(pendingIntent);
+    }
+
+    private void setupAlarmManager() {
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        intent.putExtra(AlarmReceiver.EXTRA_TASK_TITLE, mTaskTitle.getText().toString());
+        intent.putExtra(AlarmReceiver.EXTRA_TASK_DESCRIPTION, mTaskDescription.getText().toString());
+        intent.putExtra(TASK_ID, mTaskId);
+        intent.setData(Uri.parse("alarm://" + mTaskId));
+
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this.getApplicationContext(), mTaskId,
+                intent, PendingIntent.FLAG_NO_CREATE);
+        if (pendingIntent != null){
+            alarmManager.cancel(pendingIntent);
+        }
+        pendingIntent = PendingIntent.getBroadcast(this.getApplicationContext(), mTaskId,
+                intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Calendar alarmCalendar = Calendar.getInstance();
+        alarmCalendar.set(mDatePicker.getYear(), mDatePicker.getMonth(), mDatePicker.getDayOfMonth(),
+                mTimePicker.getHour(), mTimePicker.getMinute(), 0);
+
+        alarmManager.setExact(AlarmManager.RTC_WAKEUP, alarmCalendar.getTimeInMillis(), pendingIntent);
     }
 
     private void deleteTask() {
@@ -143,16 +204,17 @@ public class SetTaskActivity extends AppCompatActivity implements TimePickerDial
 
     @Override
     public void onTimeSet(android.widget.TimePicker timePicker, int hour, int minute) {
-//        Date date = new Date();
-//        mCalendar.setTime(date);
-//        int currentHour = mCalendar.get(Calendar.HOUR_OF_DAY);
-//        int currentMinute = mCalendar.get(Calendar.MINUTE);
-//        if ((currentMinute < minute && hour <= currentHour && mDay == mCalendar.get(Calendar.DAY_OF_MONTH) &&
-//                        mMonth == mCalendar.get(Calendar.MONTH) && mYear == mCalendar.get(Calendar.YEAR))){
-//            Toast.makeText(SetTaskActivity.this, "Invalid time, try again", Toast.LENGTH_LONG).show();
-//        }
+        mTimePicker = timePicker;
+        mHour = hour;
+        mMinute = minute;
             mTime = hour + ":" + minute;
-            mSelectTime.setText(mTime);
+        mTimeFormat = new SimpleDateFormat("hh:mm");
+        try {
+            mFormattedTime = mTimeFormat.parse(mTime);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        mSelectTime.setText(mTime);
     }
 
     @Override
@@ -170,25 +232,26 @@ public class SetTaskActivity extends AppCompatActivity implements TimePickerDial
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-
     }
 
     private void saveTask() {
         if (mDate != null){
-            String date = mDate;
-            String time = mTime;
+            //String date = mDate;
+            Date date = mFormattedDate;
+            Date time = mFormattedTime;
             String title = mTaskTitle.getText().toString();
             String description = mTaskDescription.getText().toString();
             saveTaskToDatabase(date, time, title, description);
         }
     }
 
-    private void saveTaskToDatabase(String date, String time, String title, String description) {
+    private void saveTaskToDatabase(Date date, Date time, String title, String description) {
         String selection = TaskEntry._ID + " = ?";
         String[] selectionArgs = {Integer.toString(mTaskId)};
         ContentValues values = new ContentValues();
-        values.put(TaskEntry.COLUMN_DATE, date);
-        values.put(TaskEntry.COLUMN_TIME, time);
+
+        values.put(TaskEntry.COLUMN_DATE, mSimpleDateFormatter.format(date));
+        values.put(TaskEntry.COLUMN_TIME, mTimeFormat.format(time));
         values.put(TaskEntry.COLUMN_TASK_TITLE, title);
         values.put(TaskEntry.COLUMN_DESCRIPTION, description);
         SQLiteDatabase db = mDbOpenHelper.getWritableDatabase();
@@ -230,9 +293,12 @@ public class SetTaskActivity extends AppCompatActivity implements TimePickerDial
         Intent intent = getIntent();
         mTaskId = intent.getIntExtra(TASK_ID, ID_NOT_SET);
         mIsNewTask = mTaskId == ID_NOT_SET;
+        mCanelAlarm = intent.getIntExtra(AlarmReceiver.EXTRA_CANCEL_TASK_ALARM, 1);
         if (mIsNewTask){
             createNewTask();
         }
+        if (mCanelAlarm != 1)
+            cancelAlarm();
     }
 
     private void createNewTask() {
@@ -245,5 +311,38 @@ public class SetTaskActivity extends AppCompatActivity implements TimePickerDial
         mTaskId = (int) db.insert(TaskEntry.TABLE_NAME, null, values);
     }
 
+    /*private void alertDialog() {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(SetTaskActivity.this);
+
+        // Setting Dialog Title
+        alertDialog.setTitle("Confirm Delete...");
+
+        // Setting Dialog Message
+        alertDialog.setMessage("Are you sure you want delete this?");
+
+        // Setting Icon to Dialog
+        alertDialog.setIcon(R.drawable.ic_delete_black_24dp);
+
+        // Setting Positive "Yes" Button
+        alertDialog.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog,int which) {
+
+                // Write your code here to invoke YES event
+                Toast.makeText(getApplicationContext(), "You clicked on YES", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Setting Negative "NO" Button
+        alertDialog.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                // Write your code here to invoke NO event
+                Toast.makeText(getApplicationContext(), "You clicked on NO", Toast.LENGTH_SHORT).show();
+                dialog.cancel();
+            }
+        });
+
+        // Showing Alert Message
+        alertDialog.show();
+    }*/
 
 }
