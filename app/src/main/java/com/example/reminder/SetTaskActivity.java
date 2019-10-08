@@ -76,13 +76,12 @@ public class SetTaskActivity extends AppCompatActivity implements TimePickerDial
         mSelectDate = (Button) findViewById(R.id.set_task_date);
         mSelectTime = (Button) findViewById(R.id.set_task_time);
         Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
+        setSupportActionBar(toolbar);
 
         mDbOpenHelper = new ReminderDbOpenHelper(this);
         FloatingActionButton SaveTaskfab = findViewById(R.id.save_task_fab);
         FloatingActionButton RemoveTaskfab = findViewById(R.id.remove_task_fab);
-        //FloatingActionButton
         mSelectDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -158,6 +157,9 @@ public class SetTaskActivity extends AppCompatActivity implements TimePickerDial
     private void cancelAlarm() {
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
         Intent intent = new Intent(this, AlarmReceiver.class);
+        intent.putExtra(AlarmReceiver.EXTRA_TASK_TITLE, mTaskTitle.getText().toString());
+        intent.putExtra(AlarmReceiver.EXTRA_TASK_DESCRIPTION, mTaskDescription.getText().toString());
+        intent.putExtra(TASK_ID, mTaskId);
         intent.setData(Uri.parse("alarm://" + mTaskId));
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this, mTaskId,
                 intent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -232,6 +234,8 @@ public class SetTaskActivity extends AppCompatActivity implements TimePickerDial
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
     }
 
     private void saveTask() {

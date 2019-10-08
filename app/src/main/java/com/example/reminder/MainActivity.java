@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.View;
 import android.view.Menu;
+import android.widget.CalendarView;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
@@ -25,6 +26,8 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView mRecyclerTasks;
     private LinearLayoutManager mTasksLayoutManager;
     private Cursor mTaskCursor;
+    private TextView mNoItemsTxt;
+    // private CalendarView mCalendarView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +37,11 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         mNoTasksFound = findViewById(R.id.no_task_found_msg);
 
+        mNoItemsTxt = (TextView) findViewById(R.id.no_items_textView);
+
         mMDbOpenHelper = new ReminderDbOpenHelper(this);
+
+        //mCalendarView = (CalendarView) findViewById(R.id.mainActivitycalendarView);
 
         /*if (mTaskRecycleAdapter.getItemCount() == 0){
             mNoTasksFound.setText("No tasks found :/");
@@ -59,9 +66,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-            DataManager.loadFromDatabase(mMDbOpenHelper);
-            loadTasks();
-            displayTasks();
+        DataManager.loadFromDatabase(mMDbOpenHelper);
+        loadTasks();
+        displayTasks();
     }
 
     private void initializeDisplayContent() {
@@ -100,19 +107,4 @@ public class MainActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
-
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        // Handle action bar item clicks here. The action bar will
-//        // automatically handle clicks on the Home/Up button, so long
-//        // as you specify a parent activity in AndroidManifest.xml.
-//        //int id = item.getItemId();
-//
-//        //noinspection SimplifiableIfStatement
-//        if (id == R.id.action_remove_task) {
-//            return true;
-//        }
-//
-//        return super.onOptionsItemSelected(item);
-//    }
 }

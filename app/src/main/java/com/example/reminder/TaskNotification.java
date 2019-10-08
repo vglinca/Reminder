@@ -18,6 +18,7 @@ import androidx.core.app.NotificationCompat;
 public class TaskNotification {
     private static final String NOTIFICATION_TAG = "Task";
     private static final String CHANNEL_ID = "task_reminder_notification";
+    private static int mId;
 
     public static void notify(final Context context, String taskTitle, String taskDescription, int taskId, int cancelAlarm) {
         final Resources res = context.getResources();
@@ -26,26 +27,24 @@ public class TaskNotification {
         setTaskActivityIntent.putExtra(SetTaskActivity.TASK_ID, taskId);
         setTaskActivityIntent.putExtra(AlarmReceiver.EXTRA_CANCEL_TASK_ALARM, cancelAlarm);
 
-        final Bitmap picture = BitmapFactory.decodeResource(res, R.drawable.example_picture);
+        mId = taskId;
+
+        final Bitmap picture = BitmapFactory.decodeResource(res, R.mipmap.icon_reminder_app);
 
         final NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
 
                 .setDefaults(Notification.DEFAULT_ALL)
-
                 .setSmallIcon(R.drawable.ic_stat_task)
                 .setContentTitle(taskTitle)
                 .setContentText(taskDescription)
-
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-
                 .setLargeIcon(picture)
-
                 .setTicker("Review task")
 
                 .setContentIntent(
                         PendingIntent.getActivity(
                                 context,
-                                0,
+                                taskId,
                                 setTaskActivityIntent,
                                 PendingIntent.FLAG_UPDATE_CURRENT))
 
@@ -56,17 +55,16 @@ public class TaskNotification {
 
     @TargetApi(Build.VERSION_CODES.ECLAIR)
     private static void notify(final Context context, final Notification notification) {
-        final NotificationManager nm = (NotificationManager) context
-                .getSystemService(Context.NOTIFICATION_SERVICE);
+        final NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence name = context.getString(R.string.channel_name);
-            String description = context.getString(R.string.channel_description);
+            String description =context.getString(R.string.channel_description);
             int importance = NotificationManager.IMPORTANCE_DEFAULT;
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
             channel.setDescription(description);
             nm.createNotificationChannel(channel);
         }
-        nm.notify(NOTIFICATION_TAG, 0, notification);
+        nm.notify(NOTIFICATION_TAG, mId, notification);
     }
 
     @TargetApi(Build.VERSION_CODES.ECLAIR)
@@ -74,7 +72,7 @@ public class TaskNotification {
         final NotificationManager nm = (NotificationManager) context
                 .getSystemService(Context.NOTIFICATION_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ECLAIR) {
-            nm.cancel(NOTIFICATION_TAG, 0);
+            nm.cancel(NOTIFICATION_TAG, mId);
         } else {
             nm.cancel(NOTIFICATION_TAG.hashCode());
         }

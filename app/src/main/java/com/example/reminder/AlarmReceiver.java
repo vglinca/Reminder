@@ -16,7 +16,7 @@ public class AlarmReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         String title = intent.getStringExtra(EXTRA_TASK_TITLE);
         String description = intent.getStringExtra(EXTRA_TASK_DESCRIPTION);
-        int taskId = intent.getIntExtra(SetTaskActivity.TASK_ID, 0);
+        int taskId = intent.getIntExtra(SetTaskActivity.TASK_ID, -1);
 
         TaskNotification.notify(context, title, description, taskId, 0);
     }
