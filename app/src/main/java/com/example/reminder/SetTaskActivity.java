@@ -140,7 +140,8 @@ public class SetTaskActivity extends AppCompatActivity implements TimePickerDial
                 }else{
                     saveTask();
                     setupAlarmManager();
-                    startActivity(new Intent(SetTaskActivity.this, MainActivity.class));
+                    onBackPressed();
+                    //startActivity(new Intent(SetTaskActivity.this, MainActivity.class));
                 }
             }
         });
@@ -149,7 +150,8 @@ public class SetTaskActivity extends AppCompatActivity implements TimePickerDial
             public void onClick(View view) {
                 cancelAlarm();
                 deleteTask();
-                startActivity(new Intent(SetTaskActivity.this, MainActivity.class));
+                onBackPressed();
+                //startActivity(new Intent(SetTaskActivity.this, MainActivity.class));
             }
         });
     }
@@ -198,6 +200,7 @@ public class SetTaskActivity extends AppCompatActivity implements TimePickerDial
                 final String[] selectionArgs = {Integer.toString(mTaskId)};
                 SQLiteDatabase db = mDbOpenHelper.getWritableDatabase();
                 db.delete(TaskEntry.TABLE_NAME, selection, selectionArgs);
+                //db.update(TaskEntry.TABLE_NAME, null, null, null);
                 return null;
             }
         };

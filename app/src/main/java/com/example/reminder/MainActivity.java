@@ -7,19 +7,25 @@ import android.os.Bundle;
 
 import com.example.reminder.ReminderDataBaseContract.TaskEntry;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.widget.CalendarView;
+import android.widget.SearchView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
-
+    private static final String TAG = "com.example.reminder.TAG";
     private TaskRecycleAdapter mTaskRecycleAdapter;
     private TextView mNoTasksFound;
     private ReminderDbOpenHelper mMDbOpenHelper;
@@ -27,7 +33,8 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayoutManager mTasksLayoutManager;
     private Cursor mTaskCursor;
     private TextView mNoItemsTxt;
-    // private CalendarView mCalendarView;
+     private CalendarView mCalendarView;
+    private SearchView mSearchTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,16 +43,28 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mNoTasksFound = findViewById(R.id.no_task_found_msg);
+        mSearchTask = (SearchView) findViewById(R.id.search_task);
+        mSearchTask.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                Toast.makeText(MainActivity.this, s, Toast.LENGTH_LONG).show();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                return false;
+            }
+        });
 
         mNoItemsTxt = (TextView) findViewById(R.id.no_items_textView);
 
         mMDbOpenHelper = new ReminderDbOpenHelper(this);
 
-        //mCalendarView = (CalendarView) findViewById(R.id.mainActivitycalendarView);
+        mCalendarView = (CalendarView) findViewById(R.id.mainActivitycalendarView);
+        long date = mCalendarView.getDate();
+        Log.d(TAG, "THIS IS THE DATE FROM CAL.VEIW: " + Long.toString(date));
 
-        /*if (mTaskRecycleAdapter.getItemCount() == 0){
-            mNoTasksFound.setText("No tasks found :/");
-        }*/
         initializeDisplayContent();
 
         FloatingActionButton fab = findViewById(R.id.save_task_fab);
