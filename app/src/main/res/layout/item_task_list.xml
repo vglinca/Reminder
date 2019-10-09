@@ -11,18 +11,30 @@
         android:layout_height="wrap_content"
         android:backgroundTint="@color/colorItemTask"
         app:cardCornerRadius="4dp"
-        app:cardElevation="4dp"
+        app:cardElevation="6dp"
         app:cardUseCompatPadding="true"
-        app:contentPadding="16dp">
+        app:contentPadding="5dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+            <ImageView
+                android:id="@+id/edit_task_image_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tint="@color/colorDateTask"
+                app:layout_constraintBottom_toBottomOf="@+id/task_description"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/task_time"
+                app:layout_constraintTop_toTopOf="@+id/task_date"
+                app:srcCompat="@drawable/ic_edit_black_24dp" />
+
             <TextView
                 android:id="@+id/task_date"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="52dp"
                 android:textAlignment="center"
                 android:textColor="@color/colorDateTask"
                 android:textStyle="bold"
@@ -55,6 +67,7 @@
                 android:id="@+id/task_description"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="52dp"
                 android:textAlignment="center"
                 android:textColor="@color/colorDescriptionTask"
                 android:textStyle="italic"

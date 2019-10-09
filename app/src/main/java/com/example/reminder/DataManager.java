@@ -31,6 +31,20 @@ public class DataManager {
         loadTasksFromDatabase(taskCursor);
     }
 
+    public static void loadFromDbWithFilter(ReminderDbOpenHelper openHelper, String filter){
+        SQLiteDatabase db = openHelper.getReadableDatabase();
+        final String[] TaskColumns = new String[]{
+                TaskEntry.COLUMN_TASK_TITLE,
+                TaskEntry.COLUMN_DATE,
+                TaskEntry.COLUMN_TIME,
+                TaskEntry.COLUMN_DESCRIPTION,
+                TaskEntry._ID};
+        String selection = TaskEntry.COLUMN_DATE + " LIKE ?";
+        String[] selectionArgs = new String[]{filter + "%"};
+        final Cursor taskCursor = db.query(TaskEntry.TABLE_NAME, TaskColumns, selection, selectionArgs, null, null, null);
+        loadTasksFromDatabase(taskCursor);
+    }
+
     private static void loadTasksFromDatabase(Cursor cursor) {
         int taskTitlePos = cursor.getColumnIndex(TaskEntry.COLUMN_TASK_TITLE);
         int taskDatePos = cursor.getColumnIndex(TaskEntry.COLUMN_DATE);

@@ -16,8 +16,8 @@ public final class ReminderDataBaseContract {
                 "CREATE TABLE " + TABLE_NAME + "(" +
                         _ID + " INTEGER PRIMARY KEY, " +
                         COLUMN_TASK_TITLE + " TEXT NOT NULL, " +
-                        COLUMN_DATE + " BLOB NOT NULL, " +
-                        COLUMN_TIME + " BLOB NOT NULL, " +
+                        COLUMN_DATE + " TEXT NOT NULL, " +
+                        COLUMN_TIME + " TEXT NOT NULL, " +
                         COLUMN_DESCRIPTION + " TEXT NOT NULL)";
     }
 }

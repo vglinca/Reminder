@@ -91,8 +91,9 @@ public class TaskRecycleAdapter extends RecyclerView.Adapter<TaskRecycleAdapter.
             mTime = (TextView) itemView.findViewById(R.id.task_time);
             mTitle = (TextView) itemView.findViewById(R.id.task_title);
             mDescription = (TextView) itemView.findViewById(R.id.task_description);
+            ImageView editTask = (ImageView) itemView.findViewById(R.id.edit_task_image_view);
 
-            itemView.setOnClickListener(new View.OnClickListener() {
+            editTask.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     Intent intent = new Intent(mContext, SetTaskActivity.class);
@@ -100,6 +101,16 @@ public class TaskRecycleAdapter extends RecyclerView.Adapter<TaskRecycleAdapter.
                     mContext.startActivity(intent);
                 }
             });
+
+
+            /*itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(mContext, SetTaskActivity.class);
+                    intent.putExtra(SetTaskActivity.TASK_ID, tId);
+                    mContext.startActivity(intent);
+                }
+            });*/
         }
     }
 }

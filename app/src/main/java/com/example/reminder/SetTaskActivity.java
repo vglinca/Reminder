@@ -140,8 +140,8 @@ public class SetTaskActivity extends AppCompatActivity implements TimePickerDial
                 }else{
                     saveTask();
                     setupAlarmManager();
-                    onBackPressed();
-                    //startActivity(new Intent(SetTaskActivity.this, MainActivity.class));
+                    //onBackPressed();
+                    startActivity(new Intent(SetTaskActivity.this, MainActivity.class));
                 }
             }
         });
@@ -164,7 +164,7 @@ public class SetTaskActivity extends AppCompatActivity implements TimePickerDial
         intent.putExtra(TASK_ID, mTaskId);
         intent.setData(Uri.parse("alarm://" + mTaskId));
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this, mTaskId,
-                intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                intent, PendingIntent.FLAG_CANCEL_CURRENT);
         alarmManager.cancel(pendingIntent);
     }
 
@@ -193,6 +193,7 @@ public class SetTaskActivity extends AppCompatActivity implements TimePickerDial
     }
 
     private void deleteTask() {
+        cancelAlarm();
         AsyncTask task = new AsyncTask() {
             @Override
             protected Object doInBackground(Object[] objects) {
@@ -236,29 +237,33 @@ public class SetTaskActivity extends AppCompatActivity implements TimePickerDial
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
+        finish();
+        //super.onBackPressed();
     }
 
     private void saveTask() {
         if (mDate != null){
-            //String date = mDate;
-            Date date = mFormattedDate;
-            Date time = mFormattedTime;
+            String date = mDate;
+            String time = mTime;
+            //Date date = mFormattedDate;
+            //Date time = mFormattedTime;
             String title = mTaskTitle.getText().toString();
             String description = mTaskDescription.getText().toString();
             saveTaskToDatabase(date, time, title, description);
         }
     }
 
-    private void saveTaskToDatabase(Date date, Date time, String title, String description) {
+    private void saveTaskToDatabase(String date, String time, String title, String description) {
         String selection = TaskEntry._ID + " = ?";
         String[] selectionArgs = {Integer.toString(mTaskId)};
         ContentValues values = new ContentValues();
 
-        values.put(TaskEntry.COLUMN_DATE, mSimpleDateFormatter.format(date));
-        values.put(TaskEntry.COLUMN_TIME, mTimeFormat.format(time));
+        //values.put(TaskEntry.COLUMN_DATE, mSimpleDateFormatter.format(date));
+        //values.put(TaskEntry.COLUMN_TIME, mTimeFormat.format(time));
+        values.put(TaskEntry.COLUMN_DATE, date);
+        values.put(TaskEntry.COLUMN_TIME, time);
         values.put(TaskEntry.COLUMN_TASK_TITLE, title);
         values.put(TaskEntry.COLUMN_DESCRIPTION, description);
         SQLiteDatabase db = mDbOpenHelper.getWritableDatabase();
@@ -304,8 +309,6 @@ public class SetTaskActivity extends AppCompatActivity implements TimePickerDial
         if (mIsNewTask){
             createNewTask();
         }
-        if (mCanelAlarm != 1)
-            cancelAlarm();
     }
 
     private void createNewTask() {
@@ -317,39 +320,4 @@ public class SetTaskActivity extends AppCompatActivity implements TimePickerDial
         SQLiteDatabase db = mDbOpenHelper.getReadableDatabase();
         mTaskId = (int) db.insert(TaskEntry.TABLE_NAME, null, values);
     }
-
-    /*private void alertDialog() {
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(SetTaskActivity.this);
-
-        // Setting Dialog Title
-        alertDialog.setTitle("Confirm Delete...");
-
-        // Setting Dialog Message
-        alertDialog.setMessage("Are you sure you want delete this?");
-
-        // Setting Icon to Dialog
-        alertDialog.setIcon(R.drawable.ic_delete_black_24dp);
-
-        // Setting Positive "Yes" Button
-        alertDialog.setPositiveButton("YES", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog,int which) {
-
-                // Write your code here to invoke YES event
-                Toast.makeText(getApplicationContext(), "You clicked on YES", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        // Setting Negative "NO" Button
-        alertDialog.setNegativeButton("NO", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                // Write your code here to invoke NO event
-                Toast.makeText(getApplicationContext(), "You clicked on NO", Toast.LENGTH_SHORT).show();
-                dialog.cancel();
-            }
-        });
-
-        // Showing Alert Message
-        alertDialog.show();
-    }*/
-
 }
